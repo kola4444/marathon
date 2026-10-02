@@ -220,7 +220,7 @@ input[type=range]{width:100%;accent-color:var(--gold);height:32px;margin:0}
   <div class="v1right">
     <div class="card">
       <div class="listhead"><h2>園児一覧 <span id="count" style="font-weight:400;color:var(--muted)"></span></h2>
-        <button id="addRow">＋ 追加</button></div>
+        <div style="display:flex;gap:6px"><button id="addRow">＋ 追加</button><button id="clearAll" style="color:var(--danger)">🗑 一括削除</button></div></div>
       <div class="list" id="list"></div>
       <p class="hint">チェックを外した園児はPDFに含まれません。名前・順位はここで直接直せます。</p>
     </div>
@@ -343,9 +343,9 @@ input[type=range]{width:100%;accent-color:var(--gold);height:32px;margin:0}
       <div class="stack">
         <button class="primary big" id="sharePdf">📤 「ファイル」に保存・共有・印刷</button>
         <button class="big" id="openPdf">👀 PDFを開いて確認</button>
-        <button class="big" id="dlPdf">⬇︎ ダウンロード</button>
+        <button class="big" id="dlPdf">⬇︎ ダウンロード（パソコン用）</button>
       </div>
-      <p class="hint">iPadでは「ファイル」に保存を選ぶとiCloud Driveなどに保存できます。AirDropや印刷もここから行えます。</p>
+      <p class="hint">iPadでは上の「『ファイル』に保存・共有・印刷」を使ってください。iCloud Driveへの保存、AirDrop、印刷ができます。「ダウンロード」はMacなどのパソコンで使うボタンです。</p>
     </div>
   </div>
 </section>
@@ -781,8 +781,8 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
 /* ===== 定数 ===== */
 const PAGE_W = 297, PAGE_H = 210;          // A4横 (mm)
 const PT = 25.4 / 72;                       // 1pt = mm
-// Pagesの見本と同じ位置・大きさで外枠画像を置く（実測値）
-const FRAME = { x: -3.51, y: -1.17, w: 303.7, h: 303.7 * 1205 / 1717 };
+// Pagesの見本と同じ大きさで外枠画像を置く。横位置は描画結果を測り、絵柄の左右の余白が等しくなるよう調整した値
+const FRAME = { x: -1.12, y: -1.17, w: 303.7, h: 303.7 * 1205 / 1717 };
 
 // iPadには游明朝・游ゴシックが無いため、ヒラギノに自動で切り替わる
 const FONTS = [
@@ -1647,6 +1647,20 @@ function init() {
     renderList();
     const inputs = $('list').querySelectorAll('.nm');
     inputs[inputs.length - 1].focus();
+  });
+  $('clearAll').addEventListener('click', () => {
+    if (!state.students.length) return;
+    if (!confirm(`園児一覧の${state.students.length}名をすべて削除しますか？\n（名簿ファイルそのものは消えません）`)) return;
+    state.students = [];
+    state.overrides = {};
+    state.columns = [];
+    state.fileName = '';
+    state.cur = 0;
+    $('fileinfo').textContent = '';
+    $('colpick').style.display = 'none';
+    $('loadMsg').className = 'msg';
+    invalidatePdf();
+    renderList();
   });
   $('prev').addEventListener('click', () => goTo(state.cur - 1));
   $('next').addEventListener('click', () => goTo(state.cur + 1));
